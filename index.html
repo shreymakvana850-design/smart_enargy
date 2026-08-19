@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Energy Monitoring System | SMT K. K. Dholakiya Schools</title>
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        :root {
+            --primary-dark: #143e23;
+            --primary: #1e6b3b;
+            --primary-light: #2da459;
+            --bg-light: #f4fdf6;
+            --text-dark: #1a1a1a;
+            --text-muted: #6c757d;
+            --white: #ffffff;
+            --danger: #dc3545;
+            --warning: #ffc107;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-light);
+            color: var(--text-dark);
+            overflow-x: hidden;
+        }
+
+        /* Loading Screen */
+        #loader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--white);
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            transition: opacity 0.5s;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid var(--bg-light);
+            border-top: 5px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Sidebar */
+        .sidebar {
+            background-color: var(--primary-dark);
+            color: var(--white);
+            min-height: 100vh;
+            padding-top: 20px;
+        }
+
+        .sidebar-brand {
+            padding: 15px 25px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            margin-bottom: 20px;
+        }
+
+        .sidebar-brand span {
+            font-size: 0.8rem;
+            font-weight: 300;
+            display: block;
+            color: #a3d9b5;
+        }
+
+        .nav-link {
+            color: rgba(255, 255, 255, 0.8);
+            padding: 12px 25px;
+            margin: 4px 15px;
+            border-radius: 8px;
+            transition: all 0.3s;
+        }
+
+        .nav-link:hover,
+        .nav-link.active {
+            background-color: var(--primary);
+            color: var(--white);
+        }
+
+        .nav-link i {
+            width: 25px;
+        }
+
+        /* Topbar */
+        .topbar {
+            background-color: var(--white);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            padding: 15px 25px;
+            margin-bottom: 30px;
+            border-radius: 0 0 15px 15px;
+        }
+
+        .status-badge {
+            font-size: 0.85rem;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-weight: 600;
+        }
+
+        /* Cards */
+        .dashboard-card {
+            background: var(--white);
+            border-radius: 15px;
+            border: none;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
+            padding: 20px;
+            margin-bottom: 20px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .dashboard-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+        }
+
+        .card-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+
+        .icon-green {
+            background: #e8f5e9;
+            color: var(--primary);
+        }
+
+        .icon-blue {
+            background: #e3f2fd;
+            color: #1976d2;
+        }
+
+        .icon-yellow {
+            background: #fff8e1;
+            color: #fbc02d;
+        }
+
+        .icon-red {
+            background: #ffebee;
+            color: var(--danger);
+        }
+
+        .value-text {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary-dark);
+            margin: 10px 0 0 0;
+        }
+
+        .label-text {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        /* Custom Switches for Relays */
+        .form-switch .form-check-input {
+            width: 3em;
+            height: 1.5em;
+        }
+
+        .form-switch .form-check-input:checked {
+            background-color: var(--primary-light);
+            border-color: var(--primary-light);
+        }
+
+        /* Footer */
+        .footer {
+            background: var(--primary-dark);
+            color: var(--white);
+            text-align: center;
+            padding: 20px;
+            margin-top: 40px;
+            border-radius: 15px 15px 0 0;
+        }
+
+        .footer p {
+            margin: 0;
+        }
+
+        .footer small {
+            color: #a3d9b5;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Loading Screen -->
+    <div id="loader">
+        <div class="spinner mb-3"></div>
+        <h4 style="color: var(--primary-dark); font-weight: 600;">Initializing Smart Dashboard...</h4>
+        <p class="text-muted">Connecting to ESP32 API</p>
+    </div>
+
+    <div class="container-fluid p-0">
+        <div class="row g-0">
+            <!-- Sidebar -->
+            <div class="col-lg-2 d-none d-lg-block sidebar">
+                <div class="sidebar-brand">
+                    SMT K. K. Dholakiya Schools
+                    <span>Since 1918</span>
+                </div>
+                <nav class="nav flex-column">
+                    <a href="#" class="nav-link active"><i class="fas fa-home"></i> Dashboard Home</a>
+                    <a href="#" class="nav-link"><i class="fas fa-chart-line"></i> Live Monitoring</a>
+                    <a href="#" class="nav-link"><i class="fas fa-brain"></i> AI Intelligence</a>
+                    <a href="#" class="nav-link"><i class="fas fa-plug"></i> Appliance Control</a>
+                    <a href="#" class="nav-link"><i class="fas fa-bell"></i> Alerts System</a>
+                    <a href="#" class="nav-link"><i class="fas fa-history"></i> Historical Data</a>
+                    <a href="#" class="nav-link"><i class="fas fa-file-pdf"></i> Reports</a>
+                </nav>
+            </div>
+
+            <!-- Main Content -->
+            <div class="col-lg-10 col-12">
+
+                <!-- Topbar -->
+                <div class="topbar d-flex justify-content-between align-items-center">
+                    <div>
+                        <h4 class="mb-0" style="color: var(--primary-dark); font-weight: 700;">Smart Energy Management
+                            System</h4>
+                        <small class="text-muted" id="last-update">Last Data Update: Waiting for telemetry...</small>
+                    </div>
+                    <div class="d-flex gap-3">
+                        <span class="status-badge bg-success text-white" id="wifi-status"><i class="fas fa-wifi"></i>
+                            Wi-Fi Connected</span>
+                        <span class="status-badge bg-success text-white" id="esp-status"><i
+                                class="fas fa-microchip"></i> ESP32 Online</span>
+                    </div>
+                </div>
+
+                <div class="container-fluid px-4">
+                    <!-- Key Metrics Row -->
+                    <div class="row">
+                        <div class="col-md-4 col-sm-6">
+                            <div class="dashboard-card">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <div class="label-text">Voltage (V)</div>
+                                        <div class="value-text" id="val-voltage">0.0</div>
+                                    </div>
+                                    <div class="card-icon icon-blue"><i class="fas fa-bolt"></i></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 col-sm-6">
+                            <div class="dashboard-card">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <div class="label-text">Current (A)</div>
+                                        <div class="value-text" id="val-current">0.00</div>
+                                    </div>
+                                    <div class="card-icon icon-yellow"><i class="fas fa-water"></i></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 col-sm-6">
+                            <div class="dashboard-card">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <div class="label-text">Power (W)</div>
+                                        <div class="value-text" id="val-power">0.0</div>
+                                    </div>
+                                    <div class="card-icon icon-red"><i class="fas fa-fire"></i></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 col-sm-6">
+                            <div class="dashboard-card">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <div class="label-text">Total Energy (kWh)</div>
+                                        <div class="value-text" id="val-energy">0.00</div>
+                                    </div>
+                                    <div class="card-icon icon-green"><i class="fas fa-leaf"></i></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 col-sm-6">
+                            <div class="dashboard-card">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <div class="label-text">Est. Cost (₹)</div>
+                                        <div class="value-text" id="val-cost">0.00</div>
+                                    </div>
+                                    <div class="card-icon icon-green"><i class="fas fa-rupee-sign"></i></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 col-sm-6">
+                            <div class="dashboard-card">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <div class="label-text">Carbon Footprint (kg CO₂)</div>
+                                        <div class="value-text" id="val-co2">0.00</div>
+                                    </div>
+                                    <div class="card-icon icon-dark"><i class="fas fa-smog text-secondary"></i></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Charts & AI Section Row -->
+                    <div class="row mt-2">
+                        <!-- Live Chart -->
+                        <div class="col-lg-8">
+                            <div class="dashboard-card h-100">
+                                <h5 style="color: var(--primary-dark); font-weight: 600;">Live Power Consumption</h5>
+                                <canvas id="powerChart" height="100"></canvas>
+                            </div>
+                        </div>
+
+                        <!-- AI & Efficiency -->
+                        <div class="col-lg-4">
+                            <div class="dashboard-card mb-4"
+                                style="background: linear-gradient(135deg, #1e6b3b, #2da459); color: white;">
+                                <h5><i class="fas fa-brain"></i> AI Energy Intelligence</h5>
+                                <hr style="border-color: rgba(255,255,255,0.3);">
+                                <div class="mb-3">
+                                    <small class="d-block text-white-50">Tomorrow's Predicted Usage</small>
+                                    <strong class="fs-4">2.8 kWh</strong>
+                                </div>
+                                <div class="mb-3">
+                                    <small class="d-block text-white-50">System Status</small>
+                                    <span class="badge bg-light text-success"><i class="fas fa-check-circle"></i> Normal
+                                        Consumption</span>
+                                </div>
+                                <div>
+                                    <small class="d-block text-white-50">Recommendation</small>
+                                    <p class="mb-0 fs-6">Turn off lab AC during recess to save est. ₹350/month.</p>
+                                </div>
+                            </div>
+
+                            <div class="dashboard-card text-center">
+                                <h5 class="label-text mb-3">Energy Efficiency Score</h5>
+                                <div class="position-relative d-inline-block">
+                                    <!-- Simple representation of a circular gauge -->
+                                    <svg width="120" height="120" viewBox="0 0 120 120">
+                                        <circle cx="60" cy="60" r="50" fill="none" stroke="#e9ecef" stroke-width="12" />
+                                        <circle cx="60" cy="60" r="50" fill="none" stroke="var(--primary)"
+                                            stroke-width="12" stroke-dasharray="314" stroke-dashoffset="40"
+                                            stroke-linecap="round" transform="rotate(-90 60 60)" />
+                                    </svg>
+                                    <div class="position-absolute top-50 start-50 translate-middle">
+                                        <h2 class="mb-0 text-success" style="font-weight: 800;">87</h2>
+                                        <small class="text-muted">GOOD</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Appliance Control & Alerts Row -->
+                    <div class="row mt-4">
+                        <div class="col-lg-6">
+                            <div class="dashboard-card">
+                                <h5><i class="fas fa-sliders-h text-primary"></i> Smart Appliance Control</h5>
+                                <p class="text-muted small">Manage relays directly from the dashboard</p>
+
+                                <div class="d-flex justify-content-between align-items-center mb-3 p-3 border rounded">
+                                    <div>
+                                        <h6 class="mb-0">Main Lab Lighting</h6>
+                                        <small class="text-success">Consuming: 45W</small>
+                                    </div>
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="relay1" checked
+                                            onchange="toggleRelay(1, this)">
+                                    </div>
+                                </div>
+
+                                <div class="d-flex justify-content-between align-items-center mb-3 p-3 border rounded">
+                                    <div>
+                                        <h6 class="mb-0">Exhaust Fans</h6>
+                                        <small class="text-muted">Consuming: 0W</small>
+                                    </div>
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="relay2"
+                                            onchange="toggleRelay(2, this)">
+                                    </div>
+                                </div>
+
+                                <div class="d-flex justify-content-between align-items-center p-3 border rounded">
+                                    <div>
+                                        <h6 class="mb-0">Heavy Lab Equipment</h6>
+                                        <small class="text-success">Consuming: 51W</small>
+                                    </div>
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="relay3" checked
+                                            onchange="toggleRelay(3, this)">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-lg-6">
+                            <div class="dashboard-card h-100">
+                                <h5><i class="fas fa-exclamation-triangle text-warning"></i> Recent Alerts</h5>
+                                <div class="table-responsive mt-3">
+                                    <table class="table table-borderless">
+                                        <thead class="border-bottom">
+                                            <tr>
+                                                <th class="text-muted">Time</th>
+                                                <th class="text-muted">Event</th>
+                                                <th class="text-muted">Severity</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td>10:42 AM</td>
+                                                <td>Slight voltage drop detected (215V)</td>
+                                                <td><span class="badge bg-warning text-dark">Warning</span></td>
+                                            </tr>
+                                            <tr>
+                                                <td>09:15 AM</td>
+                                                <td>AI detected unusual spike in Phase 1</td>
+                                                <td><span class="badge bg-danger">Critical</span></td>
+                                            </tr>
+                                            <tr>
+                                                <td>08:00 AM</td>
+                                                <td>System initialized successfully</td>
+                                                <td><span class="badge bg-success">Normal</span></td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Footer -->
+                <div class="footer">
+                    <h5 class="mb-1">Smart Energy Monitoring & Intelligent Energy Management System</h5>
+                    <p>SMT K. K. Dholakiya Schools</p>
+                    <small>Since 1918 • District Science Exhibition Project</small>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Application Logic -->
+    <script>
+        // Remove Loader
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                document.getElementById('loader').style.opacity = '0';
+                setTimeout(() => document.getElementById('loader').style.display = 'none', 500);
+            }, 800);
+        });
+
+        // Initialize Chart.js
+        const ctx = document.getElementById('powerChart').getContext('2d');
+        const powerChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: [], // Time labels
+                datasets: [{
+                    label: 'Power (Watts)',
+                    data: [],
+                    borderColor: '#2da459',
+                    backgroundColor: 'rgba(45, 164, 89, 0.1)',
+                    borderWidth: 2,
+                    tension: 0.4,
+                    fill: true,
+                    pointRadius: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    x: { display: true, grid: { display: false } },
+                    y: { beginAtZero: true, suggestedMax: 150 }
+                },
+                plugins: { legend: { display: false } },
+                animation: { duration: 0 } // Smooth real-time updates
+            }
+        });
+
+        // Update Dashboard UI elements
+        function updateDashboard(data) {
+            document.getElementById('val-voltage').innerText = data.voltage.toFixed(1);
+            document.getElementById('val-current').innerText = data.current.toFixed(2);
+            document.getElementById('val-power').innerText = data.power.toFixed(1);
+            document.getElementById('val-energy').innerText = data.energy.toFixed(2);
+
+            // Calculate Cost (Assuming ₹8 per kWh)
+            const cost = data.energy * 8;
+            document.getElementById('val-cost').innerText = cost.toFixed(2);
+
+            // Calculate CO2 (Assuming 0.82 kg CO2 per kWh)
+            const co2 = data.energy * 0.82;
+            document.getElementById('val-co2').innerText = co2.toFixed(2);
+
+            // Update timestamp
+            document.getElementById('last-update').innerText = `Last Data Update: ${data.timestamp}`;
+
+            // Update Chart
+            const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            powerChart.data.labels.push(timeStr);
+            powerChart.data.datasets[0].data.push(data.power);
+
+            if (powerChart.data.labels.length > 20) {
+                powerChart.data.labels.shift();
+                powerChart.data.datasets[0].data.shift();
+            }
+            powerChart.update();
+        }
+
+        // ==========================================
+        // API FETCH LAYER (Connects to your PHP backend)
+        // ==========================================
+        async function fetchRealData() {
+            try {
+                // When you deploy the PHP file, uncomment the lines below:
+                // const response = await fetch('api.php?action=getLatest');
+                // const data = await response.json();
+                // updateDashboard(data);
+                // document.getElementById('esp-status').innerHTML = '<i class="fas fa-microchip"></i> ESP32 Online';
+                // document.getElementById('esp-status').className = 'status-badge bg-success text-white';
+            } catch (error) {
+                console.error("Error fetching data:", error);
+                // document.getElementById('esp-status').innerHTML = '<i class="fas fa-exclamation-triangle"></i> ESP32 Offline';
+                // document.getElementById('esp-status').className = 'status-badge bg-danger text-white';
+            }
+        }
+
+        // SIMULATOR: Generates realistic data for exhibition testing purposes
+        let simEnergy = 1.25;
+        function simulateData() {
+            const simulatedData = {
+                voltage: 230 + (Math.random() * 4 - 2),
+                current: 0.42 + (Math.random() * 0.05 - 0.02),
+                get power() { return this.voltage * this.current; },
+                energy: simEnergy,
+                timestamp: new Date().toLocaleString()
+            };
+            simEnergy += (simulatedData.power / 3600000) * 1000; // Increment kWh slightly based on ms
+            updateDashboard(simulatedData);
+        }
+
+        // Poll data every 2 seconds
+        setInterval(simulateData, 2000);
+        // setInterval(fetchRealData, 2000); // Use this for actual ESP32/PHP backend
+
+        // Relay Control Logic via AJAX
+        function toggleRelay(relayId, element) {
+            const status = element.checked ? 'ON' : 'OFF';
+            console.log(`Commanding Relay ${relayId} to turn ${status}`);
+
+            // Integrate with PHP backend:
+            // fetch(`api.php?action=controlRelay&relay=${relayId}&state=${status}`);
+        }
+    </script>
+</body>
+
+</html>
