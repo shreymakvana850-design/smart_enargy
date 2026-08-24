@@ -749,9 +749,7 @@ h1,h2,h3,h4,h5,h6{font-family:var(--font-display);font-weight:700;line-height:1.
 <footer class="main-footer">Smart Energy Monitoring & Intelligent Energy Management System &copy; 2025</footer>
 
 <script>
-const CONFIG={
-    API_BASE:''
-};
+const CONFIG={API_BASE:'api/',UPDATE_INTERVAL:5000,MAX_LIVE_POINTS:20,ALERT_LIMITS:{power:1000,current:5,energy:10},TARIFF_RATE:8,CO2_FACTOR:0.76};
 const STATE={connected:true,lastSeen:Date.now(),lastData:null,liveData:[],liveLabels:[],liveFeedRows:[],currentPage:'dashboard',historyPage:1,historyData:[],appliances:[{id:1,name:'Light',icon:'fa-lightbulb',on:true,power:60,energy:.45,relay:1},{id:2,name:'Fan',icon:'fa-fan',on:false,power:0,energy:0,relay:2},{id:3,name:'AC',icon:'fa-snowflake',on:false,power:0,energy:0,relay:3},{id:4,name:'TV',icon:'fa-tv',on:true,power:120,energy:.82,relay:4},{id:5,name:'Computer',icon:'fa-desktop',on:true,power:200,energy:1.35,relay:5},{id:6,name:'Water Heater',icon:'fa-hot-tub-person',on:false,power:0,energy:0,relay:6}],alerts:[]};
 
 function generateSampleReading(){const v=220+Math.random()*20,i=.3+Math.random()*.4,p=v*i,e=parseFloat((STATE.lastData?STATE.lastData.energy+(p/1000)*(CONFIG.UPDATE_INTERVAL/36e5):1.25+Math.random()*.5).toFixed(4));return{voltage:parseFloat(v.toFixed(1)),current:parseFloat(i.toFixed(2)),power:parseFloat(p.toFixed(1)),energy:e,timestamp:new Date().toISOString().replace('T',' ').substring(0,19)}}
