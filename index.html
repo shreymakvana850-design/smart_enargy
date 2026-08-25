@@ -303,9 +303,35 @@ h1,h2,h3,h4,h5,h6{font-family:var(--font-display);font-weight:700;line-height:1.
 .stat-card.power:hover{box-shadow:0 0 30px rgba(245,158,11,.1),var(--shadow-lg);}
 .stat-card.energy:hover{box-shadow:0 0 30px rgba(167,139,250,.1),var(--shadow-lg);}
 .stat-card.cost:hover{box-shadow:0 0 30px rgba(251,146,60,.1),var(--shadow-lg);}
+
+/* ===== AUTH SYSTEM ===== */
+.auth-screen{position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;padding:24px;background:radial-gradient(circle at top right,rgba(59,130,246,.28),transparent 35%),radial-gradient(circle at bottom left,rgba(16,185,129,.16),transparent 35%),#020617;overflow:auto}
+.auth-card{width:min(460px,100%);background:rgba(15,23,42,.94);border:1px solid rgba(59,130,246,.25);border-radius:22px;padding:32px;box-shadow:0 30px 80px rgba(0,0,0,.5);backdrop-filter:blur(20px)}
+.auth-brand{text-align:center;margin-bottom:26px}.auth-brand .brand-icon{margin:0 auto 14px}.auth-brand h2{font-family:var(--font-display);font-size:24px;margin:0 0 8px}.auth-brand p{color:var(--gray-400);font-size:13px;margin:0}.auth-tabs{display:grid;grid-template-columns:1fr 1fr;background:rgba(30,41,59,.7);padding:4px;border-radius:12px;margin-bottom:22px}.auth-tab{border:0;background:transparent;color:var(--gray-400);padding:10px;border-radius:9px;font-weight:700;cursor:pointer}.auth-tab.active{background:var(--blue-600);color:#fff}.auth-panel{display:none}.auth-panel.active{display:block}.auth-field{margin-bottom:15px}.auth-field label{display:block;margin-bottom:7px;color:var(--gray-300);font-size:13px;font-weight:600}.auth-field input{width:100%;border:1px solid var(--input-border);background:var(--input-bg);color:#fff;padding:12px 14px;border-radius:10px;outline:none}.auth-field input:focus{border-color:var(--blue-500);box-shadow:0 0 0 3px rgba(59,130,246,.12)}.auth-submit{width:100%;border:0;background:linear-gradient(135deg,var(--blue-500),var(--blue-700));color:#fff;padding:13px;border-radius:10px;font-weight:800;cursor:pointer}.auth-message{min-height:20px;margin-top:12px;font-size:12px;text-align:center}.auth-message.error{color:#fca5a5}.auth-message.success{color:#6ee7b7}.user-menu{display:flex;align-items:center;gap:10px;padding:8px 12px;border:1px solid var(--card-border);border-radius:12px;background:rgba(30,41,59,.55)}.user-avatar{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;background:var(--blue-600);font-weight:800;color:#fff}.user-info{display:flex;flex-direction:column;line-height:1.2}.user-info b{font-size:12px}.user-info span{font-size:10px;color:var(--gray-400)}.logout-btn{border:0;background:transparent;color:#fca5a5;cursor:pointer;font-size:16px}@media(max-width:700px){.auth-card{padding:24px 18px}.user-info{display:none}.user-menu{padding:6px}.header-right{gap:8px}}
 </style>
 </head>
 <body>
+
+
+<!-- AUTHENTICATION -->
+<div class="auth-screen" id="authScreen">
+ <div class="auth-card">
+  <div class="auth-brand"><div class="brand-icon"><i class="fas fa-bolt"></i></div><h2>Smart Energy Monitoring</h2><p>Create your account, then login to access your dashboard.</p></div>
+  <div class="auth-tabs"><button class="auth-tab active" type="button" data-auth-tab="register">Register</button><button class="auth-tab" type="button" data-auth-tab="login">Login</button></div>
+  <form class="auth-panel active" id="registerForm" autocomplete="on">
+   <div class="auth-field"><label>Full Name</label><input id="registerName" type="text" placeholder="Enter your full name" required></div>
+   <div class="auth-field"><label>Email</label><input id="registerEmail" type="email" placeholder="Enter your email" required></div>
+   <div class="auth-field"><label>Password</label><input id="registerPassword" type="password" minlength="6" placeholder="Minimum 6 characters" required></div>
+   <div class="auth-field"><label>Confirm Password</label><input id="registerConfirmPassword" type="password" minlength="6" placeholder="Re-enter password" required></div>
+   <button class="auth-submit" type="submit"><i class="fas fa-user-plus"></i> Create Account</button><div class="auth-message" id="registerMessage"></div>
+  </form>
+  <form class="auth-panel" id="loginForm" autocomplete="on">
+   <div class="auth-field"><label>Email</label><input id="loginEmail" type="email" placeholder="Enter your registered email" required></div>
+   <div class="auth-field"><label>Password</label><input id="loginPassword" type="password" placeholder="Enter your password" required></div>
+   <button class="auth-submit" type="submit"><i class="fas fa-right-to-bracket"></i> Login to Dashboard</button><div class="auth-message" id="loginMessage"></div>
+  </form>
+ </div>
+</div>
 
 <div class="toast-container" id="toastContainer"></div>
 
@@ -325,6 +351,7 @@ h1,h2,h3,h4,h5,h6{font-family:var(--font-display);font-weight:700;line-height:1.
       <div><i class="fas fa-wifi" style="margin-right:4px;"></i>Wi-Fi Connected</div>
       <div id="headerLastSeen">Last Seen: --</div>
     </div>
+    <div class="user-menu" id="userMenu" title="Logged in user"><div class="user-avatar" id="userAvatar">U</div><div class="user-info"><b id="userNameDisplay">User</b><span id="userEmailDisplay">user@example.com</span></div><button class="logout-btn" id="logoutBtn" type="button" title="Logout"><i class="fas fa-right-from-bracket"></i></button></div>
   </div>
 </header>
 
@@ -749,6 +776,19 @@ h1,h2,h3,h4,h5,h6{font-family:var(--font-display);font-weight:700;line-height:1.
 <footer class="main-footer">Smart Energy Monitoring & Intelligent Energy Management System &copy; 2025</footer>
 
 <script>
+
+// ===== AUTHENTICATION (LOCAL DEMO) =====
+const AUTH_USERS_KEY='sems_users_v1', AUTH_SESSION_KEY='sems_session_v1';
+function getUsers(){try{return JSON.parse(localStorage.getItem(AUTH_USERS_KEY)||'[]')}catch{return[]}}
+function saveUsers(users){localStorage.setItem(AUTH_USERS_KEY,JSON.stringify(users))}
+function getSession(){try{return JSON.parse(localStorage.getItem(AUTH_SESSION_KEY)||'null')}catch{return null}}
+function setAuthMessage(id,text,type='error'){const el=document.getElementById(id);if(!el)return;el.textContent=text;el.className='auth-message '+type}
+function switchAuth(mode){document.querySelectorAll('.auth-tab').forEach(b=>b.classList.toggle('active',b.dataset.authTab===mode));document.getElementById('registerForm').classList.toggle('active',mode==='register');document.getElementById('loginForm').classList.toggle('active',mode==='login')}
+function updateUserUI(user){const name=user?.name||'User';const email=user?.email||'';const initials=name.trim().split(/\s+/).map(x=>x[0]).join('').slice(0,2).toUpperCase();document.getElementById('userNameDisplay').textContent=name;document.getElementById('userEmailDisplay').textContent=email;document.getElementById('userAvatar').textContent=initials||'U'}
+function showDashboard(user){updateUserUI(user);document.getElementById('authScreen').style.display='none'}
+function showAuth(){document.getElementById('authScreen').style.display='flex';switchAuth(getUsers().length?'login':'register')}
+function initAuth(){document.querySelectorAll('.auth-tab').forEach(b=>b.addEventListener('click',()=>switchAuth(b.dataset.authTab)));document.getElementById('registerForm').addEventListener('submit',e=>{e.preventDefault();const name=document.getElementById('registerName').value.trim(),email=document.getElementById('registerEmail').value.trim().toLowerCase(),password=document.getElementById('registerPassword').value,confirm=document.getElementById('registerConfirmPassword').value;if(!name||!email||!password)return setAuthMessage('registerMessage','Please fill all fields.');if(password.length<6)return setAuthMessage('registerMessage','Password must be at least 6 characters.');if(password!==confirm)return setAuthMessage('registerMessage','Passwords do not match.');const users=getUsers();if(users.some(u=>u.email===email))return setAuthMessage('registerMessage','This email is already registered. Please login.');const user={id:Date.now(),name,email,password,createdAt:new Date().toISOString()};users.push(user);saveUsers(users);localStorage.setItem(AUTH_SESSION_KEY,JSON.stringify({id:user.id,name,email}));setAuthMessage('registerMessage','Account created successfully! Opening dashboard...','success');setTimeout(()=>showDashboard(user),500)});document.getElementById('loginForm').addEventListener('submit',e=>{e.preventDefault();const email=document.getElementById('loginEmail').value.trim().toLowerCase(),password=document.getElementById('loginPassword').value;const user=getUsers().find(u=>u.email===email&&u.password===password);if(!user)return setAuthMessage('loginMessage','Invalid email or password.');localStorage.setItem(AUTH_SESSION_KEY,JSON.stringify({id:user.id,name:user.name,email:user.email}));setAuthMessage('loginMessage','Login successful!','success');showDashboard(user)});document.getElementById('logoutBtn').addEventListener('click',()=>{if(!confirm('Do you want to logout?'))return;localStorage.removeItem(AUTH_SESSION_KEY);showAuth()});const session=getSession();if(session)showDashboard(session);else showAuth()}
+
 const CONFIG={API_BASE:'api/',UPDATE_INTERVAL:5000,MAX_LIVE_POINTS:20,HISTORY_PER_PAGE:20,HEARTBEAT_TIMEOUT:30000,deviceId:'ESP32_01',powerLimit:1000,currentLimit:5,energyLimit:10,tariff:8,co2Factor:0.76};
 const STATE={connected:true,lastSeen:Date.now(),lastData:null,liveData:[],liveLabels:[],liveFeedRows:[],currentPage:'dashboard',historyPage:1,historyData:[],appliances:[{id:1,name:'Light',icon:'fa-lightbulb',on:true,power:60,energy:.45,relay:1},{id:2,name:'Fan',icon:'fa-fan',on:false,power:0,energy:0,relay:2},{id:3,name:'AC',icon:'fa-snowflake',on:false,power:0,energy:0,relay:3},{id:4,name:'TV',icon:'fa-tv',on:true,power:120,energy:.82,relay:4},{id:5,name:'Computer',icon:'fa-desktop',on:true,power:200,energy:1.35,relay:5},{id:6,name:'Water Heater',icon:'fa-hot-tub-person',on:false,power:0,energy:0,relay:6}],alerts:[]};
 
@@ -843,7 +883,7 @@ async function fetchAndUpdate(){let data=await apiFetch('get_latest_data.php');l
 let lastUpdateTime=Date.now();
 function updateLastUpdatedTimer(){const s=Math.floor((Date.now()-lastUpdateTime)/1e3),el=document.getElementById('lastUpdatedText');if(el){if(s<5)el.textContent='just now';else if(s<60)el.textContent=s+' seconds ago';else el.textContent=Math.floor(s/60)+' minutes ago'}if(Date.now()-STATE.lastSeen>CONFIG.HEARTBEAT_TIMEOUT&&STATE.connected)updateESPStatus(false,STATE.lastSeen)}
 
-function init(){initNavigation();initCharts();initFilterButtons();initReports();initSettings();initHistoryControls();STATE.historyData=generateHistoricalData();renderHistoryTable();renderAppliances();fetchAndUpdate().then(()=>{lastUpdateTime=Date.now()});setInterval(async()=>{await fetchAndUpdate();lastUpdateTime=Date.now()},CONFIG.UPDATE_INTERVAL);setInterval(updateLastUpdatedTimer,1e3)}
+function init(){initAuth();initNavigation();initCharts();initFilterButtons();initReports();initSettings();initHistoryControls();STATE.historyData=generateHistoricalData();renderHistoryTable();renderAppliances();fetchAndUpdate().then(()=>{lastUpdateTime=Date.now()});setInterval(async()=>{await fetchAndUpdate();lastUpdateTime=Date.now()},CONFIG.UPDATE_INTERVAL);setInterval(updateLastUpdatedTimer,1e3)}
 document.addEventListener('DOMContentLoaded',init);
 </script>
 </body>
